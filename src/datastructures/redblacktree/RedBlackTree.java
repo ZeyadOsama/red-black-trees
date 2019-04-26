@@ -1,5 +1,10 @@
 package datastructures.redblacktree;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+
 public class RedBlackTree<T> {
 
     private int size;
@@ -34,7 +39,7 @@ public class RedBlackTree<T> {
             isRed = true;
         }
 
-        public int compareTo(Node<T> node) {
+        public int compareTo(@NotNull Node<T> node) {
             return (((Comparable<T>) data).compareTo(node.data));
         }
     }
@@ -141,7 +146,7 @@ public class RedBlackTree<T> {
      * @param node   the node that caused the violation
      * @param parent the parent of the node that caused the violation
      */
-    public void balance(Node<T> node, Node<T> parent) {
+    public void balance(@NotNull Node<T> node, @NotNull Node<T> parent) {
         Node<T> newTop = null;
         Node<T> grandpa = parent.parent;
         Node<T> aunt = auntOf(node);
@@ -272,12 +277,10 @@ public class RedBlackTree<T> {
             root.isRed = false;
             newTop = grandpa;
         }
-        if (root != newTop) {
-            // rotate/color flip caused a new violation
-            if (newTop.isRed && newTop.parent.isRed) {
+        if (root != newTop)
+            // rotation or color flip caused a new violation
+            if (Objects.requireNonNull(newTop).isRed && newTop.parent.isRed)
                 balance(newTop, newTop.parent);
-            }
-        }
     }
 
     /**
@@ -321,17 +324,13 @@ public class RedBlackTree<T> {
     public int height(Node<T> node) {
         int leftHeight = -1;
         int rightHeight = -1;
-        if (node.leftChild != null) {
+
+        if (node.leftChild != null)
             leftHeight = height(node.leftChild);
-        }
-        if (node.rightChild != null) {
+        if (node.rightChild != null)
             rightHeight = height(node.rightChild);
-        }
-        if (leftHeight > rightHeight) {
-            return leftHeight + 1;
-        } else {
-            return rightHeight + 1;
-        }
+
+        return (leftHeight > rightHeight) ? leftHeight + 1 : rightHeight + 1;
     }
 
     /**
@@ -351,7 +350,7 @@ public class RedBlackTree<T> {
      * @param node
      * @return the number of black nodes in the tree
      */
-    public int countBlack(Node<T> node) {
+    private int countBlack(Node<T> node) {
         if (node == null) {
             return 0;
         }
@@ -374,7 +373,7 @@ public class RedBlackTree<T> {
      * @param node the node of which this method finds the aunt of
      * @return the aunt of the node that was passed in
      */
-    public Node<T> auntOf(Node<T> node) {
+    private Node<T> auntOf(@NotNull Node<T> node) {
         if (node.parent.parent.rightChild == node.parent) {
             return node.parent.parent.leftChild;
         }
@@ -391,7 +390,7 @@ public class RedBlackTree<T> {
      * @param node the node being rotated
      * @return returns the new top node after the rotation
      */
-    public Node<T> leftRotation(Node<T> node) {
+    private Node<T> leftRotation(@NotNull Node<T> node) {
         Node<T> newTop = node.rightChild;
         node.rightChild = newTop.leftChild;
         if (newTop.leftChild != null) {
@@ -409,7 +408,7 @@ public class RedBlackTree<T> {
      * @param node the node being rotated
      * @return returns the new top node after the rotation
      */
-    public Node<T> rightRotation(Node<T> node) {
+    private Node<T> rightRotation(@NotNull Node<T> node) {
         Node<T> newTop = node.leftChild;
         node.leftChild = newTop.rightChild;
         if (newTop.rightChild != null) {
@@ -433,7 +432,7 @@ public class RedBlackTree<T> {
      * Removes a new node in the tree
      * re-balances the tree if adding the new node caused a violation
      *
-     * @param data generic data being added to tree
+     * @param data generic data being removed from tree
      * @return true if object was added and false if not added
      */
     public boolean remove(T data) {
@@ -444,11 +443,13 @@ public class RedBlackTree<T> {
      * Internal method to remove a node in a tree.
      *
      * @param node the node that roots the tree.
-     * @param data to be removed
+     * @param data generic data being removed from tree
      */
     private boolean remove(Node<T> node, T data) {
         // contains the node containing data
-        Node<T> z = null, x, y;
+        Node<T> z = null;
+        Node<T> x;
+        Node<T> y;
         while (node != null) {
             if (((Comparable<T>) data).compareTo(node.data) == 0)
                 z = node;
@@ -488,18 +489,18 @@ public class RedBlackTree<T> {
             y.leftChild.parent = y;
             y.isRed = z.isRed;
         }
-        if (!yOriginalColor && x != null) {
-            fixDelete(x);
+        if (!yOriginalColor) {
+            fixRemove(x);
         }
         return true;
     }
 
     /**
-     * fix the tree modified by the delete operation
+     * fix the tree modified by the remove operation
      *
      * @param node to be fixed
      */
-    private void fixDelete(Node<T> node) {
+    private void fixRemove(@NotNull Node<T> node) {
         Node<T> child;
         while (node != root && !node.isRed) {
             if (node == node.parent.leftChild) {
@@ -588,7 +589,7 @@ public class RedBlackTree<T> {
      * @return minimum node
      * @see Node
      */
-    private Node findMinNode(Node<T> node) {
+    private Node<T> findMinNode(@NotNull Node<T> node) {
         while (node.leftChild != null)
             node = node.leftChild;
         return node;
@@ -601,7 +602,7 @@ public class RedBlackTree<T> {
      * @return minimum node
      * @see Node
      */
-    private Node findMaxNode(Node<T> node) {
+    private Node<T> findMaxNode(@NotNull Node<T> node) {
         while (node.rightChild != null)
             node = node.rightChild;
         return node;
@@ -612,6 +613,7 @@ public class RedBlackTree<T> {
      *
      * @return the smallest item or null if empty.
      */
+    @Nullable
     public T findMin() {
         if (isEmpty())
             return null;
@@ -627,6 +629,7 @@ public class RedBlackTree<T> {
      *
      * @return the largest item or null if empty.
      */
+    @Nullable
     public T findMax() {
         if (isEmpty())
             return null;
@@ -651,7 +654,7 @@ public class RedBlackTree<T> {
      *
      * @param node the current node being looked at
      */
-    public void printElements(Node<T> node) {
+    private void printElements(Node<T> node) {
         if (node != null) {
             printElements(node.leftChild);
             System.out.println(node.data);

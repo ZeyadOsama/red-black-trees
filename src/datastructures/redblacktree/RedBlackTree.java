@@ -40,7 +40,7 @@ public class RedBlackTree<T> {
     }
 
     /**
-     * adds a new node to the tree at the correct null leaf node
+     * Adds a new node to the tree at the correct null leaf node
      * re-balances the tree if adding the new node caused a violation
      *
      * @param data generic data being added to tree
@@ -104,8 +104,8 @@ public class RedBlackTree<T> {
      * @param obj the data that is trying to be found
      * @return true if the data was found and false if the data was not found
      */
-    public boolean find(T obj) {
-        return find(root, obj);
+    public boolean contains(T obj) {
+        return contains(root, obj);
     }
 
     /**
@@ -115,7 +115,7 @@ public class RedBlackTree<T> {
      * @param toFind  the data that is trying to be found
      * @return true if the data was found and false if the data was not found
      */
-    public boolean find(Node<T> current, T toFind) {
+    public boolean contains(Node<T> current, T toFind) {
         // data not found
         if (current == null) {
             return false;
@@ -124,13 +124,13 @@ public class RedBlackTree<T> {
         if (((Comparable<T>) current.data).compareTo(toFind) == 0) {
             return true;
         }
-        // data to find is larger than current node data
+        // data to contains is larger than current node data
         if (((Comparable<T>) current.data).compareTo(toFind) < 0) {
             // move to right subtree
-            return find(current.rightChild, toFind);
+            return contains(current.rightChild, toFind);
         }
-        // data to find is smaller than current node data, move to left subtree
-        return find(current.leftChild, toFind);
+        // data to contains is smaller than current node data, move to left subtree
+        return contains(current.leftChild, toFind);
     }
 
     /**
@@ -281,28 +281,6 @@ public class RedBlackTree<T> {
     }
 
     /**
-     * default in-order method which prints out all the
-     * nodes in the tree in order starting at the root
-     */
-    public void inOrder() {
-        inOrder(root);
-    }
-
-    /**
-     * recursive method which prints out all the nodes
-     * in the tree in order starting at a particular node
-     *
-     * @param node the current node being looked at
-     */
-    public void inOrder(Node<T> node) {
-        if (node != null) {
-            inOrder(node.leftChild);
-            System.out.println(node.data);
-            inOrder(node.rightChild);
-        }
-    }
-
-    /**
      * returns the current number of nodes/data stored in the tree
      *
      * @return the number of items stored in the tree
@@ -442,6 +420,192 @@ public class RedBlackTree<T> {
         return newTop;
     }
 
+    /**
+     * test if the tree is logically empty.
+     *
+     * @return true if empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return root.rightChild == null;
+    }
+
+    /**
+     * Removes a new node in the tree
+     * re-balances the tree if adding the new node caused a violation
+     *
+     * @param data generic data being added to tree
+     * @return true if object was added and false if not added
+     */
+    public boolean remove(T data) {
+        return (size-- != 0) ? false : remove(this.root, data);
+    }
+
+    /**
+     * Internal method to remove a node in a tree.
+     *
+     * @param node the node that roots the tree.
+     * @param data to be removed
+     */
+    private boolean remove(Node<T> node, T data) {
+        // contains the node containing data
+        Node<T> z = null, x, y;
+        while (node != null) {
+            if (((Comparable<T>) data).compareTo(node.data) == 0)
+                z = node;
+            if (((Comparable<T>) data).compareTo(node.data) >= 0)
+                node = node.rightChild;
+            else
+                node = node.leftChild;
+        }
+
+        if (z == null) {
+            System.out.println("Couldn't contains data in the tree");
+            return false;
+        }
+
+        y = z;
+        boolean yOriginalColor = y.isRed;
+        if (z.leftChild == null) {
+            x = z.rightChild;
+            colorTransplant(z, z.rightChild);
+        } else if (z.rightChild == null) {
+            x = z.leftChild;
+            colorTransplant(z, z.leftChild);
+        } else {
+            y = findMinNode(z.rightChild);
+            yOriginalColor = y.isRed;
+            x = y.rightChild;
+            if (y.parent == z) {
+                x.parent = y;
+            } else {
+                colorTransplant(y, y.rightChild);
+                y.rightChild = z.rightChild;
+                y.rightChild.parent = y;
+            }
+
+            colorTransplant(z, y);
+            y.leftChild = z.leftChild;
+            y.leftChild.parent = y;
+            y.isRed = z.isRed;
+        }
+        if (!yOriginalColor && x != null) {
+            fixDelete(x);
+        }
+        return true;
+    }
+
+    /**
+     * fix the tree modified by the delete operation
+     *
+     * @param node to be fixed
+     */
+    private void fixDelete(Node<T> node) {
+        Node<T> child;
+        while (node != root && !node.isRed) {
+            if (node == node.parent.leftChild) {
+                child = node.parent.rightChild;
+                if (child.isRed) {
+                    // case 3.1
+                    child.isRed = false;
+                    node.parent.isRed = true;
+                    leftRotation(node.parent);
+                    child = node.parent.rightChild;
+                }
+
+                if (!child.leftChild.isRed && !child.rightChild.isRed) {
+                    // case 3.2
+                    child.isRed = true;
+                    node = node.parent;
+                } else {
+                    if (!child.rightChild.isRed) {
+                        // case 3.3
+                        child.leftChild.isRed = false;
+                        child.isRed = true;
+                        rightRotation(child);
+                        child = node.parent.rightChild;
+                    }
+
+                    // case 3.4
+                    child.isRed = node.parent.isRed;
+                    node.parent.isRed = false;
+                    child.rightChild.isRed = false;
+                    leftRotation(node.parent);
+                    node = root;
+                }
+            } else {
+                child = node.parent.leftChild;
+                if (child.isRed) {
+                    // case 3.1
+                    child.isRed = false;
+                    node.parent.isRed = true;
+                    rightRotation(node.parent);
+                    child = node.parent.leftChild;
+                }
+
+                if (child != null) {
+                    if (!child.rightChild.isRed && !child.leftChild.isRed) {
+                        // case 3.2
+                        child.isRed = true;
+                        node = node.parent;
+                    } else {
+                        if (!child.leftChild.isRed) {
+                            // case 3.3
+                            child.rightChild.isRed = false;
+                            child.isRed = true;
+                            leftRotation(child);
+                            child = node.parent.leftChild;
+                        }
+
+                        // case 3.4
+                        child.isRed = node.parent.isRed;
+                        node.parent.isRed = false;
+                        child.leftChild.isRed = false;
+                        rightRotation(node.parent);
+                        node = root;
+                    }
+
+                }
+            }
+        }
+        node.isRed = false;
+    }
+
+    private void colorTransplant(Node<T> firstNode, Node<T> secondNode) {
+        if (firstNode.parent == null)
+            root = secondNode;
+        else if (firstNode == firstNode.parent.leftChild)
+            firstNode.parent.leftChild = secondNode;
+        else
+            firstNode.parent.rightChild = secondNode;
+        if (secondNode != null)
+            secondNode.parent = firstNode.parent;
+    }
+
+    /**
+     * Contains the node with the min key
+     *
+     * @param node to get minimum from
+     * @return minimum node
+     * @see Node
+     */
+    private Node findMinNode(Node<T> node) {
+        while (node.leftChild != null)
+            node = node.leftChild;
+        return node;
+    }
+
+    /**
+     * Contains the node with the min key
+     *
+     * @param node to get minimum from
+     * @return minimum node
+     * @see Node
+     */
+    private Node findMaxNode(Node<T> node) {
+        while (node.rightChild != null)
+            node = node.rightChild;
+        return node;
+    }
 
     /**
      * Find the smallest item  the tree.
@@ -452,15 +616,14 @@ public class RedBlackTree<T> {
         if (isEmpty())
             return null;
 
-        Node<T> itr = root.leftChild;
-        while (itr.leftChild != null)
-            itr = itr.leftChild;
-
-        return itr.data;
+        Node<T> node = root.leftChild;
+        while (node.leftChild != null)
+            node = node.leftChild;
+        return node.data;
     }
 
     /**
-     * Find the largest item in the tree.
+     * find the largest item in the tree.
      *
      * @return the largest item or null if empty.
      */
@@ -468,35 +631,27 @@ public class RedBlackTree<T> {
         if (isEmpty())
             return null;
 
-        Node<T> itr = root.rightChild;
-        while (itr.rightChild != null)
-            itr = itr.rightChild;
-
-        return itr.data;
+        Node<T> node = root.rightChild;
+        while (node.rightChild != null)
+            node = node.rightChild;
+        return node.data;
     }
 
     /**
-     * Test if the tree is logically empty.
-     *
-     * @return true if empty, false otherwise.
-     */
-    public boolean isEmpty() {
-        return root.rightChild == null;
-    }
-
-    /**
-     * Print all items.
+     * default method which prints out all the
+     * nodes in the tree in order starting at the root
      */
     public void printElements() {
-        printElements(root.rightChild);
+        printElements(root);
     }
 
     /**
-     * Internal method to print a subtree in sorted order.
+     * internal recursive method which prints out all the nodes
+     * in the tree in order starting at a particular node
      *
-     * @param node the node that roots the tree.
+     * @param node the current node being looked at
      */
-    private void printElements(Node<T> node) {
+    public void printElements(Node<T> node) {
         if (node != null) {
             printElements(node.leftChild);
             System.out.println(node.data);
@@ -504,9 +659,8 @@ public class RedBlackTree<T> {
         }
     }
 
-
     /**
-     * Print all items in tree form.
+     * print all items in tree form.
      */
     public void printTree() {
         printTree(this.root, "", true);
@@ -514,7 +668,7 @@ public class RedBlackTree<T> {
 
 
     /**
-     * Internal method to print a subtree in sorted order.
+     * internal method to print a subtree in sorted order.
      *
      * @param node the node that roots the tree.
      */

@@ -7,7 +7,7 @@ public class Main {
 
     public static void main(String[] args) {
         RedBlackTree<String> tree = Dictionary.load();
-        System.out.println(tree.find("a"));
+        System.out.println(tree.contains("house"));
         System.out.println(tree.height());
         System.out.println(tree.size());
         System.out.println(tree.findMin());

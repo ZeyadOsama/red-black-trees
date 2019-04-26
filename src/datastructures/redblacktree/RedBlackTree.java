@@ -2,14 +2,14 @@ package datastructures.redblacktree;
 
 public class RedBlackTree<T> {
 
-    private int currentSize;
+    private int size;
     private Node<T> root;
 
     /**
      * constructor for creating a red-black tree
      */
     public RedBlackTree() {
-        currentSize = 0;
+        size = 0;
         root = null;
     }
 
@@ -21,11 +21,11 @@ public class RedBlackTree<T> {
      * @param <T> generic type being stored in the tree
      */
     private class Node<T> implements Comparable<Node<T>> {
-        T data;
-        Node<T> leftChild;
-        Node<T> rightChild;
-        Node<T> parent;
-        boolean isRed;
+        private T data;
+        private Node<T> leftChild;
+        private Node<T> rightChild;
+        private Node<T> parent;
+        private boolean isRed;
 
         private Node(T data) {
             this.data = data;
@@ -50,7 +50,7 @@ public class RedBlackTree<T> {
         //tree is empty
         if (root == null) {
             root = new Node<>(data);
-            currentSize++;
+            size++;
             root.isRed = false;
             return true;
         }
@@ -64,7 +64,7 @@ public class RedBlackTree<T> {
                     // set parent pointer
                     newNode.parent = tempNode;
                     tempNode.rightChild = newNode;
-                    currentSize++;
+                    size++;
                     // consecutive red node violation
                     if (newNode.isRed && newNode.parent.isRed) {
                         balance(newNode, newNode.parent);
@@ -83,7 +83,7 @@ public class RedBlackTree<T> {
                     // set parent pointer
                     newNode.parent = tempNode;
                     tempNode.leftChild = newNode;
-                    currentSize++;
+                    size++;
                     // consecutive red node violation
                     if (newNode.isRed && newNode.parent.isRed) {
                         balance(newNode, newNode.parent);
@@ -308,7 +308,7 @@ public class RedBlackTree<T> {
      * @return the number of items stored in the tree
      */
     public int size() {
-        return currentSize;
+        return size;
     }
 
     /**
@@ -316,7 +316,7 @@ public class RedBlackTree<T> {
      */
     public void clear() {
         root = null;
-        currentSize = 0;
+        size = 0;
     }
 
     /**
@@ -528,8 +528,7 @@ public class RedBlackTree<T> {
                 System.out.print("L----");
                 indent += "|    ";
             }
-            String color = node.isRed ? "RED" : "BLACK";
-            System.out.println(node.data + "(" + color + ")");
+            System.out.println(node.data + (node.isRed ? "(RED)" : "(BLACK)"));
             printTree(node.leftChild, indent, false);
             printTree(node.rightChild, indent, true);
         }

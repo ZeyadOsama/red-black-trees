@@ -12,7 +12,6 @@ public class Dictionary {
 
     public static RedBlackTree<String> load() {
         RedBlackTree<String> tree = new RedBlackTree<>();
-
         BufferedReader reader;
         URL path = Dictionary.class.getResource("words.txt");
         File file = new File(path.getFile());

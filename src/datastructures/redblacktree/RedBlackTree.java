@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class RedBlackTree<T> {
+public class RedBlackTree<T extends Comparable> {
 
     private int size;
     private Node<T> root;
@@ -52,7 +52,7 @@ public class RedBlackTree<T> {
      * @return true if object was added and false if not added
      */
     public boolean add(T data) {
-        //tree is empty
+        // tree is empty
         if (root == null) {
             root = new Node<>(data);
             size++;
@@ -120,7 +120,7 @@ public class RedBlackTree<T> {
      * @param toFind  the data that is trying to be found
      * @return true if the data was found and false if the data was not found
      */
-    public boolean contains(Node<T> current, T toFind) {
+    private boolean contains(Node<T> current, T toFind) {
         // data not found
         if (current == null) {
             return false;
@@ -146,11 +146,12 @@ public class RedBlackTree<T> {
      * @param node   the node that caused the violation
      * @param parent the parent of the node that caused the violation
      */
-    public void balance(@NotNull Node<T> node, @NotNull Node<T> parent) {
+    private void balance(@NotNull Node<T> node, @NotNull Node<T> parent) {
         Node<T> newTop = null;
         Node<T> grandpa = parent.parent;
         Node<T> aunt = auntOf(node);
-        // aunt node is black or null... rotate
+        // aunt node is black or null
+        // rotate
         if (aunt == null || !aunt.isRed) {
             if (node == parent.rightChild) {
                 // error is in the grandfathers right child's right child
@@ -160,14 +161,15 @@ public class RedBlackTree<T> {
                         // sets the new parent pointer
                         newTop.parent = grandpa.parent;
                         if (grandpa.parent.rightChild == grandpa) {
-                            //sets new child pointer
+                            // sets new child pointer
                             grandpa.parent.rightChild = newTop;
                         } else if (grandpa.parent.leftChild == grandpa) {
-                            //sets new child pointer
+                            // sets new child pointer
                             grandpa.parent.leftChild = newTop;
                         }
-                        // grandpa was the root node
-                    } else {
+                    }
+                    // grandpa was the root node
+                    else {
                         // reset root node
                         root = newTop;
                         root.parent = null;
@@ -178,8 +180,9 @@ public class RedBlackTree<T> {
                     newTop.leftChild.isRed = true;
                     newTop.rightChild.isRed = true;
                     root.isRed = false;
-                    // error is in the grandfathers left child's right child
-                } else if (parent == grandpa.leftChild) {
+                }
+                // error is in the grandfathers left child's right child
+                else if (parent == grandpa.leftChild) {
                     leftRotation(parent);
                     grandpa.leftChild = node;
                     newTop = rightRotation(grandpa);
@@ -209,8 +212,9 @@ public class RedBlackTree<T> {
                     newTop.rightChild.isRed = true;
                     root.isRed = false;
                 }
-            } else if (node == parent.leftChild) {
-                // error is in the grandfathers right child's left child
+            }
+            // error is in the grandfathers right child's left child
+            else if (node == parent.leftChild) {
                 if (parent == parent.parent.rightChild) {
                     rightRotation(parent);
                     grandpa.rightChild = node;
@@ -269,7 +273,8 @@ public class RedBlackTree<T> {
                 }
             }
         }
-        // aunt node is red, color flip
+        // aunt node is red
+        // color flip
         else {
             parent.isRed = false;
             aunt.isRed = false;
@@ -303,15 +308,12 @@ public class RedBlackTree<T> {
     /**
      * recursive method that counts the number of edges in
      * the longest path in the tree from root to leaf node
+     * starting by root node
      *
      * @return the height of longest path in the tree
      */
     public int height() {
-        if (root == null) {
-            return 0;
-        } else {
-            return height(root);
-        }
+        return root == null ? 0 : height(root);
     }
 
     /**
@@ -321,7 +323,7 @@ public class RedBlackTree<T> {
      * @param node current node being looked at
      * @return 1 more than the height to the leaf node
      */
-    public int height(Node<T> node) {
+    private int height(Node<T> node) {
         int leftHeight = -1;
         int rightHeight = -1;
 
@@ -347,23 +349,21 @@ public class RedBlackTree<T> {
      * recursively counts the number of
      * black nodes currently in the tree
      *
-     * @param node
+     * @param node current node being looked at
      * @return the number of black nodes in the tree
      */
     private int countBlack(Node<T> node) {
-        if (node == null) {
+        if (node == null)
             return 0;
-        }
+
         int count = 0;
-        if (node.leftChild != null) {
+        if (node.leftChild != null)
             count += countBlack(node.leftChild);
-        }
-        if (node.rightChild != null) {
+        if (node.rightChild != null)
             count += countBlack(node.rightChild);
-        }
-        if (!node.isRed) {
+
+        if (!node.isRed)
             count++;
-        }
         return count;
     }
 
@@ -373,6 +373,7 @@ public class RedBlackTree<T> {
      * @param node the node of which this method finds the aunt of
      * @return the aunt of the node that was passed in
      */
+    @Nullable
     private Node<T> auntOf(@NotNull Node<T> node) {
         if (node.parent.parent.rightChild == node.parent) {
             return node.parent.parent.leftChild;
@@ -436,7 +437,7 @@ public class RedBlackTree<T> {
      * @return true if object was added and false if not added
      */
     public boolean remove(T data) {
-        return (size-- != 0) ? false : remove(this.root, data);
+        return (size-- != 0) ? remove(this.root, data) : false;
     }
 
     /**
@@ -446,24 +447,22 @@ public class RedBlackTree<T> {
      * @param data generic data being removed from tree
      */
     private boolean remove(Node<T> node, T data) {
-        // contains the node containing data
+        // find the node containing data
         Node<T> z = null;
         Node<T> x;
         Node<T> y;
         while (node != null) {
-            if (((Comparable<T>) data).compareTo(node.data) == 0)
+            if (data.compareTo(node.data) == 0)
                 z = node;
-            if (((Comparable<T>) data).compareTo(node.data) >= 0)
+            if (data.compareTo(node.data) >= 0)
                 node = node.rightChild;
             else
                 node = node.leftChild;
         }
-
         if (z == null) {
-            System.out.println("Couldn't contains data in the tree");
+            System.out.println(ConsoleColors.RED + "Error: Couldn't find key in tree" + ConsoleColors.RESET);
             return false;
         }
-
         y = z;
         boolean yOriginalColor = y.isRed;
         if (z.leftChild == null) {
@@ -483,15 +482,14 @@ public class RedBlackTree<T> {
                 y.rightChild = z.rightChild;
                 y.rightChild.parent = y;
             }
-
             colorTransplant(z, y);
             y.leftChild = z.leftChild;
             y.leftChild.parent = y;
             y.isRed = z.isRed;
         }
-        if (!yOriginalColor) {
+        if (!yOriginalColor && x != null)
             fixRemove(x);
-        }
+
         return true;
     }
 
@@ -501,70 +499,66 @@ public class RedBlackTree<T> {
      * @param node to be fixed
      */
     private void fixRemove(@NotNull Node<T> node) {
-        Node<T> child;
+        Node<T> s;
         while (node != root && !node.isRed) {
             if (node == node.parent.leftChild) {
-                child = node.parent.rightChild;
-                if (child.isRed) {
+                s = node.parent.rightChild;
+                if (s.isRed) {
                     // case 3.1
-                    child.isRed = false;
+                    s.isRed = false;
                     node.parent.isRed = true;
                     leftRotation(node.parent);
-                    child = node.parent.rightChild;
+                    s = node.parent.rightChild;
                 }
 
-                if (!child.leftChild.isRed && !child.rightChild.isRed) {
+                if (!s.leftChild.isRed && !s.rightChild.isRed) {
                     // case 3.2
-                    child.isRed = true;
+                    s.isRed = true;
                     node = node.parent;
                 } else {
-                    if (!child.rightChild.isRed) {
+                    if (!s.rightChild.isRed) {
                         // case 3.3
-                        child.leftChild.isRed = false;
-                        child.isRed = true;
-                        rightRotation(child);
-                        child = node.parent.rightChild;
+                        s.leftChild.isRed = false;
+                        s.isRed = true;
+                        rightRotation(s);
+                        s = node.parent.rightChild;
                     }
-
                     // case 3.4
-                    child.isRed = node.parent.isRed;
+                    s.isRed = node.parent.isRed;
                     node.parent.isRed = false;
-                    child.rightChild.isRed = false;
+                    s.rightChild.isRed = false;
                     leftRotation(node.parent);
                     node = root;
                 }
             } else {
-                child = node.parent.leftChild;
-                if (child.isRed) {
+                s = node.parent.leftChild;
+                if (s.isRed) {
                     // case 3.1
-                    child.isRed = false;
+                    s.isRed = false;
                     node.parent.isRed = true;
                     rightRotation(node.parent);
-                    child = node.parent.leftChild;
+                    s = node.parent.leftChild;
                 }
 
-                if (child != null) {
-                    if (!child.rightChild.isRed && !child.leftChild.isRed) {
-                        // case 3.2
-                        child.isRed = true;
-                        node = node.parent;
-                    } else {
-                        if (!child.leftChild.isRed) {
-                            // case 3.3
-                            child.rightChild.isRed = false;
-                            child.isRed = true;
-                            leftRotation(child);
-                            child = node.parent.leftChild;
-                        }
-
-                        // case 3.4
-                        child.isRed = node.parent.isRed;
-                        node.parent.isRed = false;
-                        child.leftChild.isRed = false;
-                        rightRotation(node.parent);
-                        node = root;
+                if (!s.rightChild.isRed) {
+                    // case 3.2
+                    s.isRed = true;
+                    node = node.parent;
+                } else {
+                    if (!s.leftChild.isRed) {
+                        // case 3.3
+                        s.rightChild.isRed = false;
+                        s.isRed = true;
+                        leftRotation(s);
+                        s = node.parent.leftChild;
                     }
 
+                    // case 3.4
+                    s.isRed = node.parent.isRed;
+                    node.parent.isRed = false;
+                    s.leftChild.isRed = false;
+                    rightRotation(node.parent);
+                    node = root;
                 }
             }
         }
@@ -592,7 +586,7 @@ public class RedBlackTree<T> {
     private Node<T> findMinNode(@NotNull Node<T> node) {
         while (node.leftChild != null)
             node = node.leftChild;
-        return node;
+        return node.parent.parent;
     }
 
     /**
@@ -605,7 +599,7 @@ public class RedBlackTree<T> {
     private Node<T> findMaxNode(@NotNull Node<T> node) {
         while (node.rightChild != null)
             node = node.rightChild;
-        return node;
+        return node.parent.parent;
     }
 
     /**
@@ -689,5 +683,14 @@ public class RedBlackTree<T> {
             printTree(node.leftChild, indent, false);
             printTree(node.rightChild, indent, true);
         }
+    }
+
+    /**
+     * Utility class for console colors printing
+     */
+    private final class ConsoleColors {
+        private static final String RESET = "\033[0m";
+        private static final String RED = "\u001B[31m";
+        private static final String GREEN = "\033[0;32m";
     }
 }
